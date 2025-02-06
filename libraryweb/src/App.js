@@ -6,6 +6,7 @@ import AddUsers from "./Components/AddUsers";
 import ViewUsers from "./Components/ViewUsers";
 import Addbook from "./Components/Addbook";
 import ViewBooks from "./Components/ViewBooks";
+import CheckedOut from "./Components/CheckedOut";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/admin/viewuser" element={<ViewUsers/>}/>
         <Route path="/admin/addbook" element={<Addbook/>}/>
         <Route path="/admin/viewbook" element={<ViewBooks/>}/>
+        <Route path="/admin/checkin" element={<CheckedOut/>}/>
       </Routes>
     </Router>
     </div>

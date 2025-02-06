@@ -41,6 +41,14 @@ function HomePage() {
             </div>
           </Link>
         </div>
+        <div className="col-md-6 mb-4">
+          <Link to="/admin/checkin" className="card shadow-sm text-decoration-none">
+            <div className="card-body text-center">
+              <h5 className="card-title">Check in</h5>
+              <p className="card-text">View the checked out books.</p>
+            </div>
+          </Link>
+        </div>
       </div>
       <div className="text-center mt-4">
         <p className="text-muted"></p>

@@ -7,7 +7,7 @@ function ViewBooks() {
     const [error, setError] = useState("");
     useEffect(() => {
       axios
-        .get("http://localhost:5000/api/viewbook") // Change this to match your backend API
+        .get("http://localhost:5000/api/viewreserve") // Change this to match your backend API
         .then((response) => {
           setBooks(response.data); // Axios automatically parses JSON
           setLoading(false);
@@ -18,6 +18,18 @@ function ViewBooks() {
         });
     
     }, []);
+    const handleCheckout = async (rid,bid,uid) => {
+      if (!window.confirm("Are you sure you want to checkout this book?")) return;
+  
+      try {
+        
+        await axios.post(`http://localhost:5000/api/checkout/${rid}/${bid}/${uid}`);
+        setBooks(books.filter(book => book.rid !== rid)); // Update state after deletion
+      } catch (err) {
+        console.error("Error deleting user:", err);
+        setError("Error deleting user.");
+      }
+    };
   return (
     <div className="container mt-4">
       <h2 className="mb-4">Users List</h2>
@@ -30,19 +42,24 @@ function ViewBooks() {
         <table className="table table-striped">
           <thead>
             <tr>
-              <th>Regno</th>
-              <th>Firstname</th>
-              <th>Lastname</th>
-              <th>Delete</th>
+              <th>Reservation ID</th>
+              <th>Reg no</th>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Reservation Time</th>
+              <th>Checkout</th>
             </tr>
           </thead>
           <tbody>
             {books.map((book) => (
               <tr key={book.bid}>
+                <td>{book.rid}</td>
                 <td>{book.regno}</td>
-                <td>{book.firstname}</td>
-                <td>{book.lastname}</td>
-                <td><button  className="btn btn-primary w-70 btn">Delete</button></td>
+                <td>{book.title}</td>
+                <td>{book.author}</td>
+                <td>{book.rdt}</td>
+                
+                <td><button onClick={() => handleCheckout(book.rid,book.bid,book.id)} className="btn btn-primary w-70 btn">Checkout</button></td>
               </tr>
             ))}
           </tbody>
