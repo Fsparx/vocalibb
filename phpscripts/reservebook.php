@@ -9,7 +9,16 @@
         $stmt2->execute();
         $result = $stmt2->get_result();
         $bookavailable = $result->fetch_assoc();
-        if($bookavailable["available"]=="YES"){
+        $sqlcheck2="SELECT * FROM reservation WHERE bid=(?) AND uid=(?)";
+        $stmt4 =$conn->prepare($sqlcheck2);
+        $stmt4->bind_param("ii",$bid,$id);
+        $stmt4->execute();
+        $result2 = $stmt4->get_result();
+        $isalreadyreserved = $result2->fetch_assoc();
+        if($isalreadyreserved){
+            echo json_encode(["message"=>"YOU RESERVED"]);
+        }
+        elseif($bookavailable["available"]=="YES"){
             $currentDateTime = date('Y-m-d H:i:s');
             $datetimeAfterTwoDays = date('Y-m-d H:i:s', strtotime('+2 days'));
             $sql="INSERT INTO reservation (uid,bid,rdt,edt) VALUES(?,?,?,?)";
