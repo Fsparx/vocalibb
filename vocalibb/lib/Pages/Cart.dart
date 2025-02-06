@@ -63,6 +63,24 @@ List<dynamic> cartlist=[];
     await getcart(id); // Fetch reservations only if ID is not empty
   }
 }
+Future<void> deletecart(int cid) async{
+  final response = await http.post(
+        Uri.parse("http://" + ip + ":8080/finalproject/deletecart.php"),
+        body: {
+          "cid":cid.toString()
+        });
+   if(response.statusCode==200){
+      print(response.body);
+      final responsedata=json.decode(response.body);
+      if(responsedata["message"]=="Successfull"){
+        print("Success");
+        getcart(id);
+      }
+      else if(responsedata["message"]=="Unsuccessfull"){
+        print("Unsuccessfull");
+      }
+    }
+}
   @override
   void initState()  {
     super.initState();
@@ -101,6 +119,7 @@ List<dynamic> cartlist=[];
               itemBuilder: (context,index){
                 String title=cartlist[index]["title"] ?? "";
                 String edt=cartlist[index]["available"] ?? "";
+                int cid=cartlist[index]["cid"]??"";
                 return Padding(
                   padding: EdgeInsets.only(top: 7),
                   child: ListTile(
@@ -137,7 +156,8 @@ List<dynamic> cartlist=[];
                                     TextButton(
                                       child: const Text('Yes'),
                                       onPressed: () {
-                                        
+                                        deletecart(cid);
+                                      
                                         Navigator.of(context).pop();
                                       },
                                     ),
