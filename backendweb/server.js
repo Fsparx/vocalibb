@@ -101,6 +101,95 @@ app.post('/api/addbook', (req, res) => {
     }
   });
 });
+app.get('/api/viewreserve', (req, res) => {
+  const query = 'SELECT * FROM reservation INNER JOIN bookinfo ON reservation.bid=bookinfo.bid INNER JOIN users ON users.id=reservation.uid';
+  console.log("hiii");
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Database error', error: err });
+    }
+    console.log(results);
+    res.json(results);
+  });
+});
+app.post('/api/checkout/:rid/:bid/:uid', (req, res) => {
+  const { rid, bid,uid } = req.params;
+  const checkout_date = new Date();
+    const expiry_date = new Date();
+    expiry_date.setDate(checkout_date.getDate() + 7);
+  const query = 'INSERT INTO checkout (rid,bid,cdt,edt,uid) VALUES(?,?,?,?,?)';
+
+  db.query(query, [rid,bid,checkout_date,expiry_date,uid], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: 'Database error', error: err });
+    }
+    res.json({ success: true, message: 'Inserted into checkout table' });
+  });
+});
+app.get('/api/viewcheckout', (req, res) => {
+  const query = 'SELECT * FROM checkout INNER JOIN bookinfo ON checkout.bid=bookinfo.bid INNER JOIN users ON users.id=checkout.uid';
+  console.log("hiii");
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ message: 'Database error', error: err });
+    }
+    console.log(results);
+    res.json(results);
+  });
+});
+app.post('/api/checkin/:cid/:bid', (req, res) => {
+  const { cid, bid } = req.params;
+// 1. Get expiry date
+console.log("edo");
+  const sqlGetExpiry = `SELECT edt FROM checkout WHERE cid = ? AND bid = ?`;
+  db.query(sqlGetExpiry, [cid, bid], (err, result) => {
+      if (err) {
+          console.error('Database Error:', err);
+          return res.status(500).json({ error: 'Database error' });
+      }
+
+      if (result.length === 0) {
+          return res.status(404).json({ error: 'No active checkout record found for this book.' });
+      }
+
+      const expiry_date = new Date(result[0].expiry_date);
+      const today = new Date();
+      let fineAmount = 0;
+
+      if (today > expiry_date) {
+          fineAmount = calculateFine(expiry_date, today);
+      }
+
+      // 2. Remove checkout record
+      const sqlDeleteCheckout = `DELETE FROM checkout WHERE cid = ? AND bid = ?`;
+      db.query(sqlDeleteCheckout, [cid, bid], (err, result) => {
+          if (err) {
+              console.error('Database Error:', err);
+              return res.status(500).json({ error: 'Error removing checkout record' });
+          }
+          console.log("Removed checkout");
+          // 3. Update book availability
+          const sqlUpdateBook = `UPDATE bookinfo SET available = 'YES' WHERE bid = ?`;
+          db.query(sqlUpdateBook, [bid], (err, result) => {
+              if (err) {
+                  console.error('Database Error:', err);
+                  return res.status(500).json({ error: 'Error updating book availability' });
+              }
+              console.log("Available YES");
+              res.json({
+                  message: 'Check-in successful!',
+                  fine: fineAmount > 0 ? `You have a fine of ₹${fineAmount}. Please pay before borrowing more books.` : 'No fine required.',
+              });
+          });
+      });
+  });
+});
+
+
+function calculateFine(expiry_date, today) {
+  const daysLate = Math.ceil((today - expiry_date) / (1000 * 60 * 60 * 24)); // Convert ms to days
+  return daysLate * 10;
+}
 // Start Server
 const port = 5000;
 app.listen(port, () => {
