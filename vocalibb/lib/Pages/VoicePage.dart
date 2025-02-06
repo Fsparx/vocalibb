@@ -1,157 +1,214 @@
-//import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:speech_to_text/speech_recognition_error.dart';
-//import 'package:speech_to_text/speech_recognition_error.dart';
-import 'package:speech_to_text/speech_to_text.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:vocalibb/Pages/BookResult.dart';
+import 'package:http/http.dart' as http;
+import 'package:vocalibb/Pages/globals.dart';
+
 class VoicePage extends StatefulWidget {
-  const VoicePage({super.key});
+  const VoicePage({Key? key}) : super(key: key);
 
   @override
   State<VoicePage> createState() => _VoicePageState();
 }
 
 class _VoicePageState extends State<VoicePage> {
-  final SpeechToText speechToText=SpeechToText();
-  bool speechenabled=false;
-  bool isProcessing=false;
-  String wordspoken="";
-  double confidence=0;
-  String action = "";
+  final SpeechToText speechToText = SpeechToText();
+  bool speechenabled = false;
+  String wordspoken = "";
   String bookName = "";
-  //bool isListening = false;
+  String action = "";
+  bool isProcessing = false;
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     initspeech();
   }
-  void initspeech() async{
-    speechenabled=await speechToText.initialize(
-     onStatus: onSpeechStatus,
-    //onError: onSpeechError,
-    );
-    setState(() {});
+
+  @override
+  void dispose() {
+    speechToText.stop();
+    speechToText.cancel();
+    super.dispose();
   }
-  void startlistening() async{
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!speechToText.isAvailable && !speechenabled) {
+      initspeech();
+    }
+  }
+
+  void initspeech() async {
+    speechenabled = await speechToText.initialize(onStatus: onSpeechStatus);
+    if (mounted) setState(() {});
+  }
+
+  void startlistening() async {
+    if (!speechenabled) return;
     await speechToText.listen(
-      onResult:onspeechresult,
-      //listenFor: Duration(seconds: 60),
-      //pauseFor: Duration(seconds: 5),
-      
+      onResult: onspeechresult,
       listenOptions: SpeechListenOptions(
         listenMode: ListenMode.dictation,
-        cancelOnError: false) );
-      
-    setState(() {
-      confidence=0;
-    });
+        cancelOnError: false,
+      ),
+    );
+    if (mounted) setState(() {});
   }
-  void stoplistening() async{
+
+  void stoplistening() async {
     await speechToText.stop();
-    
-    //processText(wordspoken);
-    //wordspoken="";
-    // setState(() {
-      
-    // });
+    if (mounted) setState(() {});
+    processText(wordspoken);
   }
-  void onSpeechStatus(String status) {
-    print("Speech status: $status");
-    if(status=="done"){
-      stoplistening();
+
+  void onSpeechStatus(String status) async {
+    if (status == "notListening") {
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (mounted) stoplistening();
     }
-    
-    // Add logic based on status (e.g., "done", "listening", etc.)
   }
-  void onSpeechError(SpeechRecognitionError error) {
-    stoplistening();
+
+  void onspeechresult(result) {
+    if (mounted) {
+      setState(() {
+        wordspoken = result.recognizedWords;
+      });
+    }
   }
-  void onspeechresult(result){
-    setState(() {
-      wordspoken="${result.recognizedWords}";
-      confidence=result.confidence;
-    });
-     
-  }
-  
 
   Future<void> processText(String text) async {
-    print("hii");
-    setState(() {
-      isProcessing=true;
-    });
-    //sleep(Duration(seconds: 5));
-    await Future.delayed(Duration(seconds: 5));
-    final response = await http.post(
-      Uri.parse('http://192.168.1.5:5000/process_text'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'text': text}),
-    );
-    setState(() {
-      isProcessing=false;
-    });
+    try {
+      final response = await http.post(
+        Uri.parse("http://$ip:5000/process_text"),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'text': text}),
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+      if (!mounted) return;
       setState(() {
-        action = data['action_words'].join(', ');
-        bookName = data['book_name'] ?? 'No book found';//Change data here for searchingg
+        isProcessing = false;
       });
-      print(action+"\n"+bookName);
-    } else {
-      print('Failed to process text');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          action = data['action_words'].join(', ');
+          bookName = data['book_name'] ?? 'No book found';
+        });
+
+        if (bookName != "No book found") {
+          _showConfirmationDialog(bookName);
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isProcessing = false;
+      });
     }
   }
+
+  void _showConfirmationDialog(String bookName) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Book'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[Text("Is the book called $bookName?")],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Yes'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                getbookinfo(bookName);
+              },
+            ),
+            TextButton(
+              child: const Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> getbookinfo(String book) async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://$ip:8080/finalproject/searchforone.php"),
+        body: {"search": book},
+      );
+
+      if (response.statusCode == 200) {
+        final responsedata = json.decode(response.body);
+        if (responsedata.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BookInfo(book: responsedata[0]),
+            ),
+          );
+        } else {
+          Fluttertoast.showToast(
+            msg: "Book not in inventory",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+          );
+        }
+      }
+    } catch (e) {
+      print("Error fetching book info: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF1F4F8),
+      backgroundColor: const Color(0xFFF1F4F8),
       body: SafeArea(
         child: Column(
           children: [
-            
-            
             Padding(
-              padding: EdgeInsets.only(left: 10,right: 10,top: 20),
+              padding: const EdgeInsets.all(16.0),
               child: Center(
-                child: Text(speechToText.isListening? "Listening.....": 
-                speechenabled? "Tap the microphone to start listening":
-                "Speech not available",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500
-                ),),
+                child: Text(
+                  speechToText.isListening
+                      ? "Listening..."
+                      : speechenabled
+                          ? "Tap the microphone to start listening"
+                          : "Speech not available",
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                ),
               ),
             ),
-            Expanded(child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(wordspoken,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w300
-              ) ,))
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  wordspoken,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w300),
+                ),
               ),
-          
-
-              
-            // if(speechToText.isNotListening && confidence>0)
-            //   Padding
-              
-            //   (padding: EdgeInsets.only(bottom: 100),
-            //     child: Text("Confidence: ${confidence*100}")
-            //   )
-            
+            ),
           ],
-        )
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: speechToText.isListening?stoplistening:startlistening,
-        child: Icon(speechToText.isNotListening?Icons.mic_off:Icons.mic),
-        )
-        
+        onPressed: speechToText.isListening ? stoplistening : startlistening,
+        child: Icon(speechToText.isListening ? Icons.mic : Icons.mic_off),
+      ),
     );
   }
 }

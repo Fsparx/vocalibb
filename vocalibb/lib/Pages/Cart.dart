@@ -4,23 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:vocalibb/Pages/globals.dart';
-class ReservationPage extends StatefulWidget {
-  const ReservationPage({super.key});
+class CartPage extends StatefulWidget {
+  const CartPage({super.key});
 
   @override
-  State<ReservationPage> createState() => _ReservationPageState();
+  State<CartPage> createState() => _CartPageState();
 }
-String id="";
-List<dynamic> reservationlist=[];
-class _ReservationPageState extends State<ReservationPage> {
+
+class _CartPageState extends State<CartPage> {
+  String id="";
+List<dynamic> cartlist=[];
+
   Future<void> getid()async{
     SharedPreferences prefs=await SharedPreferences.getInstance();
     id=prefs.getString("id")?? "";
-    print(id);
+    print(id+"fafaf");
   }
-  Future<void> getreservation(String id) async{
+  Future<void> getcart(String id) async{
     final response = await http.post(
-        Uri.parse("http://" + ip + ":8080/finalproject/getreservation.php"),
+        Uri.parse("http://" + ip + ":8080/finalproject/getcart.php"),
         body: {
           "id": id,
           
@@ -30,7 +32,7 @@ class _ReservationPageState extends State<ReservationPage> {
       final responsedata=json.decode(response.body);
       
       setState(() {
-        reservationlist=responsedata;
+        cartlist=responsedata;
       });
     }
         
@@ -48,7 +50,7 @@ class _ReservationPageState extends State<ReservationPage> {
       final responsedata=json.decode(response.body);
       if(responsedata["message"]=="Successfull"){
         print("Success");
-        getreservation(id);
+        getcart(id);
       }
       else if(responsedata["message"]=="Unsuccessfull"){
         print("Unsuccessfull");
@@ -58,7 +60,7 @@ class _ReservationPageState extends State<ReservationPage> {
   Future<void> loadReservations() async {
   await getid(); // Wait until the ID is retrieved
   if (id.isNotEmpty) {
-    await getreservation(id); // Fetch reservations only if ID is not empty
+    await getcart(id); // Fetch reservations only if ID is not empty
   }
 }
   @override
@@ -71,7 +73,7 @@ class _ReservationPageState extends State<ReservationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Center(
+        child:Center(
           child: Column(
             children: [
               Align(
@@ -88,17 +90,17 @@ class _ReservationPageState extends State<ReservationPage> {
                 alignment: Alignment.topLeft,
                 child: Padding(
                   padding: EdgeInsets.only(left: 10,top: 30),
-                  child: Text("Reservation List",
+                  child: Text("Cart",
                   style: TextStyle(
                     fontSize: 25,
                     fontWeight: FontWeight.w600),),),
               ),
               Expanded(
             child: ListView.separated(
-              itemCount: reservationlist.length,
+              itemCount: cartlist.length,
               itemBuilder: (context,index){
-                String title=reservationlist[index]["title"] ?? "";
-                String edt=reservationlist[index]["edt"] ?? "";
+                String title=cartlist[index]["title"] ?? "";
+                String edt=cartlist[index]["available"] ?? "";
                 return Padding(
                   padding: EdgeInsets.only(top: 7),
                   child: ListTile(
@@ -108,7 +110,7 @@ class _ReservationPageState extends State<ReservationPage> {
                       fontSize: 18,
                       fontWeight: FontWeight.w600
                     ),),
-                    subtitle: Text("Checkout date: $edt",
+                    subtitle: Text(" Available :$edt",
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500
@@ -135,7 +137,7 @@ class _ReservationPageState extends State<ReservationPage> {
                                     TextButton(
                                       child: const Text('Yes'),
                                       onPressed: () {
-                                        deletereservation(reservationlist[index]["rid"].toString(),reservationlist[index]["bid"].toString());
+                                        
                                         Navigator.of(context).pop();
                                       },
                                     ),
@@ -163,8 +165,7 @@ class _ReservationPageState extends State<ReservationPage> {
           )
             ],
           ),
-        ),
-      ),
+        )),
     );
   }
 }

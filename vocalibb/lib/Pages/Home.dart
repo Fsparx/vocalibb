@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
     if (response.statusCode == 200) {
       body = json.decode(response.body);
       print(body);
-      print(body!["ECONOMICS"][0]["bid"]);
+      //print(body!["ECONOMICS"][0]["bid"]);
       setState(() {
         body;
       });
@@ -57,24 +57,20 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Color(0xFFF1F4F8),
       body: SafeArea(
-          child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextButton(
-              onPressed: () {
-                _setname();
-              },
-              child: Text("hiii")),
-          Padding(
-            padding: EdgeInsets.only(left: 10, top: 10),
-            child: Text("Welcome $_name",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 25,
-                )),
-          ),
-          SingleChildScrollView(
+          child: Expanded(
             child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+            
+            Padding(
+              padding: EdgeInsets.only(left: 10, top: 10),
+              child: Text("Welcome $_name",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 25,
+                  )),
+            ),
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: body==null ?[]: body?.entries.map((entry) {
                     final departmentName = entry.key;
@@ -100,6 +96,10 @@ class _HomePageState extends State<HomePage> {
                             child: Row(
                               children: books.map((book) {
                                 String isbn = book["isbn"];
+                                String link="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png";
+                                if(isbn!=""){
+                                  link="https://covers.openlibrary.org/b/isbn/$isbn-M.jpg";
+                                }
                                 return Padding(
                                   padding: EdgeInsets.all(8),
                                   child: GestureDetector(
@@ -117,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                                           borderRadius:
                                               BorderRadius.circular(8.0),
                                           child: Image.network(
-                                            "https://covers.openlibrary.org/b/isbn/$isbn-M.jpg",
+                                            link,
                                             width: 90,
                                             height: 90,
                                             fit: BoxFit.cover,
@@ -147,53 +147,53 @@ class _HomePageState extends State<HomePage> {
                   }).toList() ??
                   [],
             ),
-          ),
-
-          // const Padding(
-          //   padding: EdgeInsets.only(left: 10, top: 10),
-          //   child: Text("Genres",
-          //   style: TextStyle(
-          //     fontWeight:FontWeight.w600,
-          //     fontSize: 18,
-          //   ),),
-          // ),
-          // Padding(
-          //   padding: const EdgeInsets.all(8),
-          //   child: SingleChildScrollView(
-          //     scrollDirection: Axis.horizontal,
-          //     child: Row(
-          //       children: items.map((item) {
-          //         return Padding(
-          //           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          //           child: Column(
-          //             mainAxisSize: MainAxisSize.min,
-          //             children: [
-          //               ClipRRect(
-          //                 borderRadius: BorderRadius.circular(
-          //                     8.0),
-          //                 child: Image.network(
-          //                   item['url']!,
-          //                   width: 90,
-          //                   height: 90,
-          //                   fit: BoxFit.cover,
-          //                 ),
-          //               ),
-          //               SizedBox(height: 4),
-          //               Text(
-          //                 item['title']!,
-          //                 style: TextStyle(
-          //                     fontSize: 14, fontWeight: FontWeight.w500),
-          //                 textAlign: TextAlign.center,
-          //               ),
-          //             ],
-          //           ),
-          //         );
-          //       }).toList(),
-          //     ),
-          //   ),
-          // ),
-        ],
-      )),
+            
+            // const Padding(
+            //   padding: EdgeInsets.only(left: 10, top: 10),
+            //   child: Text("Genres",
+            //   style: TextStyle(
+            //     fontWeight:FontWeight.w600,
+            //     fontSize: 18,
+            //   ),),
+            // ),
+            // Padding(
+            //   padding: const EdgeInsets.all(8),
+            //   child: SingleChildScrollView(
+            //     scrollDirection: Axis.horizontal,
+            //     child: Row(
+            //       children: items.map((item) {
+            //         return Padding(
+            //           padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            //           child: Column(
+            //             mainAxisSize: MainAxisSize.min,
+            //             children: [
+            //               ClipRRect(
+            //                 borderRadius: BorderRadius.circular(
+            //                     8.0),
+            //                 child: Image.network(
+            //                   item['url']!,
+            //                   width: 90,
+            //                   height: 90,
+            //                   fit: BoxFit.cover,
+            //                 ),
+            //               ),
+            //               SizedBox(height: 4),
+            //               Text(
+            //                 item['title']!,
+            //                 style: TextStyle(
+            //                     fontSize: 14, fontWeight: FontWeight.w500),
+            //                 textAlign: TextAlign.center,
+            //               ),
+            //             ],
+            //           ),
+            //         );
+            //       }).toList(),
+            //     ),
+            //   ),
+            // ),
+                    ],
+                  ),
+          )),
     );
   }
 }

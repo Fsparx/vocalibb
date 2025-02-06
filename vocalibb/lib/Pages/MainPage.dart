@@ -14,14 +14,17 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  List pages=[HomePage(),SearchPage(),VoicePage(),SettingPage()];
+  final List<Widget> pages=[HomePage(),SearchPage(),VoicePage(),SettingPage()];
   int index=0;
   
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
       backgroundColor: const Color(0xFFF1F4F8),
-      body: pages[index],
+      body: IndexedStack(
+        index: index,
+        children: pages,
+      ),
       bottomNavigationBar: Container(
         width: double.infinity,
         child: Padding(

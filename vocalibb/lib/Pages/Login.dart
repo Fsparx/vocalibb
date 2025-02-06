@@ -151,11 +151,11 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.only(top:23),
-                  child: Text("Forgot Password?",
-                  ),
-                )
+                // Padding(
+                //   padding: EdgeInsets.only(top:23),
+                //   child: Text("Forgot Password?",
+                //   ),
+                // )
               ],
             ),
           ),
