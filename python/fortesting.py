@@ -18,7 +18,7 @@ def extract_action_and_book_name(text):
 
     return action_words, book_name
 print("In procssing")
-data = "I am looking for the book titled Flora of British India" 
+data = "I am looking for the book titled Art of Spirit" 
 text = data
 action_words, book_name = extract_action_and_book_name(text)
 print(action_words,book_name)
