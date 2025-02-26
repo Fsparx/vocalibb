@@ -1,18 +1,22 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vocalibb/Pages/BookResult.dart';
-
+import 'firebase_options.dart';
 import 'package:vocalibb/Pages/Login.dart';
 import 'package:vocalibb/Pages/MainPage.dart';
 import 'package:vocalibb/Pages/SelectGenre.dart';
-
+import 'package:firebase_messaging/firebase_messaging.dart';
 //import 'package:vocalib/Pages/MainPage.dart';
 //import 'package:vocalib/Pages/SelectGenre.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(
-    const MyApp());
+    
+    MyApp());
 }
 
 class MyApp extends StatefulWidget {

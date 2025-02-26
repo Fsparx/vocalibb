@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "152771674386",
+    "project_id": "vocalib-a1189",
+    "storage_bucket": "vocalib-a1189.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:152771674386:android:158eb40796b14e58e473cb",
+        "android_client_info": {
+          "package_name": "com.example.vocalibb"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRD0adK1UVukutGtDiPggfa5cedu-oeng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

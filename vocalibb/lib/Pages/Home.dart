@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,6 +34,7 @@ class _HomePageState extends State<HomePage> {
       _name = name;
     });
     setbooks(id);
+    getToken(id);
   }
 
   Future<void> setbooks(String id) async {
@@ -52,6 +54,46 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+void getToken(String id) async {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // Request permission for notifications
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
+    sound: true,
+  );
+
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    // Get the FCM token
+    String? token = await messaging.getToken();
+    print("FCM Token: $token");
+
+    // Save token to MySQL via API
+    saveTokenToDatabase(token,id);
+  } else {
+    print("Notification permission denied");
+  }
+}
+
+
+void saveTokenToDatabase(String? token,String id) async {
+  if (token == null) return;
+
+  final response = await http.post(
+    Uri.parse("http://" + ip + ":8080/finalproject/storefcm.php"),
+    body: {
+      "uid": id, // Example User ID
+      "fcm_token": token,
+    },
+  );
+
+  print(response.body);
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
