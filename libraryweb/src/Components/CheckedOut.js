@@ -1,76 +1,67 @@
-import React from 'react'
-import { useState,useEffect } from "react";
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
 function CheckedOut() {
-    const [books, setBooks] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-    useEffect(() => {
-      axios
-        .get("http://localhost:5000/api/viewcheckout") // Change this to match your backend API
-        .then((response) => {
-          setBooks(response.data); // Axios automatically parses JSON
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching users:", error);
-          setLoading(false);
-        });
-    
-    }, []);
-    const handleCheckIn = async (cid,bid) => {
-      if (!window.confirm("Are you sure you want to Check-In this book?")) return;
-  
-      try {
-        await axios.post(`http://localhost:5000/api/checkin/${cid}/${bid}`).then(response => {
-          console.log(response.data);
-          alert(response.data.fine);
-      })
-      .catch(error => console.error('Error:', error));
-        setBooks(books.filter(book => book.cid !== cid)); // Update state after deletion
-      } catch (err) {
-        console.error("Error deleting user:", err);
-        setError("Error deleting user.");
-      }
-    };
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/viewcheckout")
+      .then(({ data }) => setBooks(data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleCheckIn = async (cid, bid) => {
+    if (!window.confirm("Are you sure you want to check in this book?")) return;
+
+    try {
+      const { data } = await axios.post(`http://localhost:5000/api/checkin/${cid}/${bid}`);
+      alert(data.fine);
+      setBooks((prev) => prev.filter((book) => book.cid !== cid));
+    } catch (err) {
+      console.error("Error checking in book:", err);
+    }
+  };
+
   return (
     <div className="container mt-4">
-    <h2 className="mb-4">Check In List</h2>
+      <h2 className="mb-4 text-center">Checked-Out Books</h2>
 
-    {loading ? (
-      <p>Loading ...</p>
-    ) : books.length === 0 ? (
-      <p className="text-center">No books to be returned.</p>
-    ) : (
-      <table className="table table-striped">
-        <thead>
-          <tr>
-            <th>Checkout ID</th>
-            <th>Book ID</th>
-            <th>Regno</th>
-            <th>Title</th>
-            <th>Expiry Time</th>
-            <th>Check-in</th>
-          </tr>
-        </thead>
-        <tbody>
-          {books.map((book) => (
-            <tr key={book.cid}>
-              <td>{book.cid}</td>
-              <td>{book.bid}</td>
-              <td>{book.regno}</td>
-              <td>{book.title}</td>
-              <td>{book.edt}</td>
-              
-              
-              <td><button onClick={() => handleCheckIn(book.cid,book.bid)} className="btn btn-primary w-70 btn">Check-In</button></td>
+      {loading ? (
+        <p className="text-center">Loading...</p>
+      ) : books.length === 0 ? (
+        <p className="text-center">No books to be returned.</p>
+      ) : (
+        <table className="table table-striped text-center">
+          <thead>
+            <tr>
+              {["Checkout ID", "Book ID", "Reg No", "Title", "Expiry Time", "Action"].map((head) => (
+                <th key={head}>{head}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    )}
-  </div>
-  )
+          </thead>
+          <tbody>
+            {books.map(({ cid, bid, regno, title, edt }) => (
+              <tr key={cid}>
+                <td>{cid}</td>
+                <td>{bid}</td>
+                <td>{regno}</td>
+                <td>{title}</td>
+                <td>{edt}</td>
+                <td>
+                  <button onClick={() => handleCheckIn(cid, bid)} className="btn btn-success btn-sm">
+                    Check-In
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
 }
 
-export default CheckedOut
+export default CheckedOut;
