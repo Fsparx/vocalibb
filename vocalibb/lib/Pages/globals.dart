@@ -1,3 +1,3 @@
 library my_globals;
 
-String ip = "192.168.26.90";
+String ip = "ip";
